@@ -1,0 +1,32 @@
+name: Test
+on:
+  - push
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        requests:
+          - 2.25
+          - 2.26
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: requests-mock-response-time
+        shell: bash
+        run: |
+          pip install -U requests==${{ matrix.requests }} requests-mock
+          export PYTHONDONTWRITEBYTECODE=1
+          for count in 1000 5000 10000; do
+            for run in {1..5}; do
+              echo -e "\nrun #${run}"
+              ./requests-mock-response-time.py "${count}"
+            done
+          done
